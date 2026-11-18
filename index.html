@@ -131,7 +131,8 @@ canvas.sim{width:100%;max-width:600px;background:var(--bot);border:2px solid var
 <section id="home" class="tab active"></section>
 <section id="lessons" class="tab"><div id="hub"></div><div id="lv" style="display:none"></div></section>
 <section id="exam" class="tab"></section>
-<section id="tutor" class="tab"><div class="row"><button class="btn gray" onclick="goHome()">🏠 الرئيسية</button><span class="badge" id="aibadge">📘 المعلم المحلى</span></div><h2>🤖 المعلم الذكى</h2><div class="chat"><div class="msgs" id="chatArea"></div><div class="inp"><input id="ui" placeholder="اسأل بالعامية براحتك... مثلًا: يعنى إيه ذرة؟"><button class="btn" onclick="askBot()">إرسال</button></div></div></section>
+<section id="tutor" class="tab"><div class="row"><button class="btn gray" onclick="goHome()">🏠 الرئيسية</button><span class="badge" id="aibadge"></span></div><h2>🤖 المعلم الذكى</h2><div class="chat"><div class="msgs" id="chatArea"></div><div class="inp"><input id="ui" placeholder="اسأل بالعامية براحتك... مثلًا: يعنى إيه ذرة؟"><button class="btn" onclick="askBot()">إرسال</button></div></div>
+<details class="card" style="margin-top:14px"><summary style="cursor:pointer;font-weight:800">⚙️ ربط المعلم بالذكاء الاصطناعى (للمعلم / المسؤول)</summary><p style="margin:8px 0;color:var(--muted)">بدون ربط يعمل «المعلم المحلى» (يفهم العامية ويجاوب من محتوى الدروس). للإجابة على أى سؤال بحرية مثل ChatGPT وGemini، ألصق هنا رابط الوسيط بعد نشره (الخطوات فى ملف ربط-المعلم-بالذكاء-الاصطناعى).</p><div class="row"><input type="text" id="aiurl" placeholder="https://اسم-الوسيط.workers.dev"><button class="btn" onclick="saveAI()">حفظ</button></div></details></section>
 <section id="res" class="tab"><div class="row"><button class="btn gray" onclick="goHome()">🏠 الرئيسية</button></div><h2>🔗 المصادر الرسمية</h2><div class="row"><a class="btn" href="https://moe.gov.eg" target="_blank" rel="noopener">وزارة التربية والتعليم</a><a class="btn" href="https://www.ekb.eg" target="_blank" rel="noopener">بنك المعرفة المصرى</a></div></section>
 </div>
 <div class="fab"><button onclick="goHome()" title="الرئيسية">🏠</button><button onclick="scrollTo({top:0,behavior:'smooth'})" title="لأعلى">⬆</button></div>
@@ -539,9 +540,11 @@ const LAB=SIM.map((s,i)=>el=>{el.innerHTML='<div id="simBox"></div>'+(GAME[i]?'<
 
 /* ===== التبويبات والمعلم الذكى ===== */
 document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+/* ===== المعلم الذكى: يفهم العامية المصرية + يعرض فيديو/مجسم/صورة/تجربة + وضع ذكاء اصطناعى اختيارى ===== */
 let curL=-1;const chatHist=[];
+const getAI=()=>{try{return AI_ENDPOINT||localStorage.getItem('aiEndpoint')||''}catch(e){return AI_ENDPOINT}};
 const IMGQ=['نموذج بور للذرة','الجدول الدوري للعناصر','حالات المادة','رابطة أيونية','كهرباء ساكنة','مغناطيس','جاذبية','خلية (أحياء)','تمثيل ضوئي','بكتيريا','المجموعة الشمسية','خسوف القمر'];
-const TOPIC=['ذره ذرات ذرة بروتون بروتونات الكترون الكترونات نيوترون نيوترونات نواه نظائر نظير مستويات طاقه شحنه ايون','جدول دوري دوره دورات مجموعه مجموعات عناصر فلزات لافلزات غازات نبيله توزيع الكتروني هالوجينات','ماده مواد خصائص مركب مركبات عنصر مخلوط مخاليط نقيه سبيكه هوفمان ماء مالح','رابطه روابط ايونيه تساهميه كاتيون انيون ترابط كيميائيه تتربط ترتبط','كهربيه كهربا كهرباء كهربائيه ساكنه شحنات دلك مشط الكتروسكوب صواعق صاعقه تنافر تجاذب','مغناطيس مغناطيسيه مغنطيس مغناطيسي قطب اقطاب بوصله مجال بيجذب حديد','جاذبيه وزن كتله نيوتن تقع تسقط بتقع نيوتن ثقل','خليه خلايا جذعيه نباتيه حيوانية الاميبا نسيج عضويات وحيده','كائنات حيه حي صفات تنفس بناء ضوئي ضوئي تغذيه اخراج نمو حركه تكاثر يتنفس','ميكروب ميكروبات بكتيريا فطريات فطر زبادي مرض امراض فيروس جراثيم ميكروبي','ارض نظام شمسي شمس كواكب كوكب فصول فصل محور ليل نهار مدار صيف شتاء','خسوف قمر القمر بدر محاق اطوار هلال ظل شبه كسوف'];
+const TOPIC=['ذره ذرات ذرة بروتون بروتونات الكترون الكترونات نيوترون نيوترونات نواه نظائر نظير مستويات طاقه شحنه ايون','جدول دوري دوره دورات مجموعه مجموعات عناصر فلزات لافلزات غازات نبيله توزيع الكتروني هالوجينات','ماده مواد خصائص مركب مركبات عنصر مخلوط مخاليط نقيه سبيكه هوفمان ماء مالح','رابطه روابط ايونيه تساهميه كاتيون انيون ترابط كيميائيه تتربط ترتبط','كهربيه كهربا كهرباء كهربائيه ساكنه شحنات دلك مشط الكتروسكوب صواعق صاعقه تنافر تجاذب','مغناطيس مغناطيسيه مغنطيس مغناطيسي قطب اقطاب بوصله مجال بيجذب حديد','جاذبيه وزن كتله نيوتن تقع تسقط بتقع نيوتن ثقل','خليه خلايا جذعيه نباتيه حيوانيه الاميبا نسيج عضويات وحيده','كائنات حيه حي صفات تنفس بناء ضوئي ضوئي تغذيه اخراج نمو حركه تكاثر يتنفس','ميكروب ميكروبات بكتيريا فطريات فطر زبادي مرض امراض فيروس جراثيم ميكروبي','ارض نظام شمسي شمس كواكب كوكب فصول فصل محور ليل نهار مدار صيف شتاء','خسوف قمر القمر بدر محاق اطوار هلال ظل شبه كسوف'];
 const nrm=t=>String(t).toLowerCase().replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/[^\u0621-\u064Aa-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
 const stem=w=>w.replace(/^(وال|بال|لل|فال|كال|ال)(?=.{3,})/,'');
 const toks=t=>nrm(t).split(' ').map(stem).filter(w=>w.length>=2);
@@ -568,7 +571,7 @@ function localAnswer(t0){
     return{t:'اتفضل يا بطل 👇 ده اللى طلبته عن **'+LS[L].t+'**',m:types.map(x=>[x,L]),L};
   }
   if(L<0)return{t:'ممم، مش متأكد فهمت قصدك بالظبط 🤔\nأنا متخصص فى دروس كتابك. اسألنى عن حاجة جواها (الذرة، الجدول الدورى، الروابط، الكهربا، المغناطيس، الجاذبية، الخلية، الميكروبات، الفصول، الخسوف...) ولو السؤال بره المنهج هقولك. ممكن كمان تدوس على أى درس 👇',chips:'L'};
-  const tk=toks(t0).filter(w=>!STOP.has(w)),sc=kbFor(L,has(q,'يعني ايه','يعني اي','ايه هو','ايه هي','معني','تعريف','اشرح','شرح','فهمني','مش فاهم','بسطها')).map(e=>({e,s:e.k.filter(w=>w.length>=3&&tk.some(x=>x===w||(x.length>=4&&w.length>=4&&(w.startsWith(x)||w.startsWith(w))))).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,2);
+  const tk=toks(t0).filter(w=>!STOP.has(w)),sc=kbFor(L,has(q,'يعني ايه','يعني اي','ايه هو','ايه هي','معني','تعريف','اشرح','شرح','فهمني','مش فاهم','بسطها')).map(e=>({e,s:e.k.filter(w=>w.length>=3&&tk.some(x=>x===w||(x.length>=4&&w.length>=4&&(w.startsWith(x)||x.startsWith(w))))).length})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,2);
   const def=has(q,'يعني ايه','يعني اي','ايه هو','ايه هي','معني','تعريف','اشرح','شرح','فهمني','مش فاهم','بسطها'),why=has(q,'ليه','ازاي','لماذا','كيف','بيحصل','بتحصل');
   const intro=def?'بص يا بطل، ببساطة كده 👇':why?'سؤال حلو! الإجابة بسيطة 👇':'خد بالك من دى 👇';
   let body=sc.length?sc.map(x=>'• '+x.e.t).join('\n'):'';
@@ -601,6 +604,11 @@ async function chatImg(q,title){
   catch(e){d.innerHTML='🖼️ مقدرتش أجيب صورة دلوقتى (محتاج إنترنت). جرّب المجسم 🧊 أو الفيديو 🎬 — هيوضّحوا الفكرة.'}
   const a=document.getElementById('chatArea');a.scrollTop=a.scrollHeight;
 }
+async function aiAnswer(){
+  const ctx=LS.map((l,i)=>(i+1)+') '+l.t+': '+l.p.join('؛ ')+' | '+l.k).join('\n')+(curL>=0?'\nالدرس المفتوح الآن: '+(curL+1):'');
+  const r=await fetch(getAI(),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:chatHist.slice(-10),context:ctx})});
+  if(!r.ok)throw new Error(r.status);const j=await r.json();if(!j.text)throw new Error('empty');return j.text;
+}
 function renderBot(res){
   const d=bubble('bot',fmt(res.t)+(res.chips===true?startChips():'')+(res.chips==='L'?startChips()+lessonChips(['video','3d']):'')+(res.pick?lessonChips(res.pick):'')+(res.actions!==undefined?actionChips(res.actions):''));
   if(res.m)res.m.forEach(x=>chatMedia(x[0],x[1]));
@@ -609,12 +617,19 @@ function renderBot(res){
 async function sendChat(txt){
   const i=document.getElementById('ui'),t=(txt||i.value).trim();if(!t)return;i.value='';sfx('pop');
   bubble('user',fmt(t));chatHist.push({role:'user',content:t});
-  const wait=bubble('bot','⏳ بفكر...');
-  setTimeout(()=>{if(wait.parentNode)wait.remove();const r=localAnswer(t);chatHist.push({role:'assistant',content:r.t});if(r.L!==undefined&&r.L>=0)curL=r.L;renderBot(r);sfx('click')},350);
+  const wait=bubble('bot','⏳ بفكر...');let res=null,failed=false;
+  if(getAI()){try{
+    let txt=await aiAnswer();const m=[];txt=txt.replace(/\[\[(3d|video|lab|img|quiz):([^\]]*)\]\]/gi,(a,k,v)=>{m.push([k.toLowerCase(),v.trim()]);return ''}).trim();
+    res={t:txt,ai:true};wait.remove();chatHist.push({role:'assistant',content:txt});renderBot(res);
+    m.slice(0,2).forEach(([k,v])=>{if(k==='img')chatImg(v,v);else{const n=parseInt(v)-1;if(n>=0&&n<LS.length)chatMedia(k,n)}});sfx('click');return}
+  catch(e){failed=true;wait.innerHTML='⚠️ الذكاء الاصطناعى مش متاح دلوقتى، هجاوبك بالمعلم المحلى...'}}
+  setTimeout(()=>{if(!failed&&wait.parentNode)wait.remove();const r=localAnswer(t);chatHist.push({role:'assistant',content:r.t});if(r.L!==undefined&&r.L>=0)curL=r.L;renderBot(r);sfx('click')},350);
 }
 function askBot(){sendChat()}
+function saveAI(){const v=document.getElementById('aiurl').value.trim();try{localStorage.setItem('aiEndpoint',v)}catch(e){}document.getElementById('aibadge').textContent=v?'🤖 وضع الذكاء الاصطناعى مفعّل':'📘 المعلم المحلى (بدون إنترنت)';sfx('ok')}
 document.getElementById('ui').onkeypress=e=>{if(e.key==='Enter')sendChat()};
-(function(){const a=document.getElementById('chatArea');if(a)a.insertAdjacentHTML('beforeend','<div class="msg bot">'+fmt('أهلًا يا بطل! 👋 أنا **المعلم الذكى**. اسألنى بأى طريقة، بالعامية عادى، وأنا هبسّطهالك وأوريك فيديو أو مجسم أو صورة أو تجربة لو محتاج.')+startChips()+'</div>')})();
+(function(){const u=document.getElementById('aiurl');if(u)u.value=getAI();const b=document.getElementById('aibadge');if(b)b.textContent=getAI()?'🤖 وضع الذكاء الاصطناعى مفعّل':'📘 المعلم المحلى (بدون إنترنت)';
+  const a=document.getElementById('chatArea');if(a)a.insertAdjacentHTML('beforeend','<div class="msg bot">'+fmt('أهلًا يا بطل! 👋 أنا **المعلم الذكى**. اسألنى بأى طريقة، بالعامية عادى، وأنا هبسّطهالك وأوريك فيديو أو مجسم أو صورة أو تجربة لو محتاج.')+startChips()+'</div>')})();
 
 
 </script>
